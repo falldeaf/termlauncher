@@ -4,6 +4,7 @@ from textual import log
 import asyncio
 import subprocess
 import json
+import pyautogui
 
 class KeyLauncher(App):
 	"""A Textual key launcher app."""
@@ -74,7 +75,8 @@ class KeyLauncher(App):
 		log("foo")
 		vlist = self.query_one(ListView)
 		log(vlist.index)
-		#quit()
+		pyautogui.hotkey('win', '`')
+		quit()
 
 	async def get_console_output(self, query: str, plugin: dict) -> None:
 		log(query + " " + plugin['search'] + " " + plugin['keyword'])
@@ -87,7 +89,8 @@ class KeyLauncher(App):
 		output, stderr = await process.communicate()
 
 		log(output)
-		for key in json.loads(output):
+		self.current_object = json.loads(output)
+		for key in self.current_object:
 			log(key)
 			vlist.append(ListItem(Label(key)))
 		

@@ -16,6 +16,15 @@ if args.search:
 		installed_applications[key] = fuzz.ratio(key.lower(), args.search.lower())
 
 	sorted_json = dict(sorted(installed_applications.items(), key=lambda item: item[1], reverse=True))
+
+	#final_json = {}
+	#for index, (key, value) in enumerate(sorted_json.items()):
+		#print(index, key, value)
+		#final_json['action'] = key
+		#final_json['match'] = value
+		#final_json['title'] = ke
+		#if value > args.num:
+			#break
 	sliced_json = {key: sorted_json[key] for key in list(sorted_json.keys())[:args.num]}
 	print(json.dumps(sliced_json))
 
