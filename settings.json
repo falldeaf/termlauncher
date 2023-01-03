@@ -1,0 +1,13 @@
+{
+	"theme": "dark",
+	"plugins": 
+	[
+		{
+			"name": "applauncher",
+			"icon": "📱",
+			"keyword": "a",
+			"search": "py plugin_apps.py --search {query}",
+			"run": "py plugin_apps.py --run {action}"
+		}
+	]
+}
