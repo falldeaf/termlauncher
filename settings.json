@@ -10,6 +10,15 @@
 			"type": "listing",
 			"listitem": "({index}) {name}",
 			"run": "py plugin_apps.py --run {action}"
+		},
+		{
+			"name": "web search",
+			"icon": "🌎",
+			"keyword": "s",
+			"search": "py plugin_websearch.py --sites",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "py plugin_websearch.py --run \"{query}\" --index {index}"
 		}
 	]
 }

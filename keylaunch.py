@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView, ListItem, Label, Footer, DataTable, Input
-from textual import log
+from textual import log, events
 import asyncio
 import subprocess
 import json
@@ -11,11 +11,12 @@ class KeyLauncher(App):
 
 	plugins = []
 	current_object = {}
+	current_plugin = {}
 	task = None
 
 	BINDINGS = [
 		("d", "toggle_dark", "Toggle dark mode"),
-		("q", "quit", "Quit the app"),
+		("esc", "quit", "Quit the app"),
 	]
 
 	def on_mount(self) -> None:
@@ -26,6 +27,7 @@ class KeyLauncher(App):
 		self.plugins = self.settings['plugins']
 		f.close()
 		log(self.plugins)
+		self.query_one(Input).focus()
 
 	def compose(self) -> ComposeResult:
 		"""Create child widgets for the app."""
@@ -34,6 +36,18 @@ class KeyLauncher(App):
 		#yield DataTable()
 		yield ListView()
 		yield Footer()
+
+	def on_key(self, event: events.Key) -> None:
+		log(event.key)
+
+		if event.key == "left":
+			self.query_one(Input).focus()
+		elif event.key == "right":
+			self.query_one(Input).focus()
+		elif event.key == "up":
+			self.query_one(ListView).focus()
+		elif event.key == "down":
+			self.query_one(ListView).focus()
 
 	async def on_input_changed(self, message: Input.Changed) -> None:
 		"""A coroutine to handle a text changed message."""
@@ -52,6 +66,8 @@ class KeyLauncher(App):
 
 			if plugin_to_use is None:
 				return
+
+			self.current_plugin = plugin_to_use
 
 			if len(parts) > 1:
 				if self.task is not None:
@@ -72,9 +88,17 @@ class KeyLauncher(App):
 			self.query_one(ListView).clear()
 
 	async def on_list_view_selected(self, message: ListView.Selected) -> None:
-		log("foo")
 		vlist = self.query_one(ListView)
 		log(vlist.index)
+		log(list(self.current_object.items())[vlist.index][0])
+
+		command = self.current_plugin['run'].replace("{action}", "\"" + list(self.current_object.items())[vlist.index][0] + "\"").replace("{index}", str(vlist.index)).replace("{query}", self.query_one(Input).value.split(" ", 1)[1])
+
+		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		output, stderr = await process.communicate()
+
+		if self.task is not None:
+			self.task.cancel()
 		pyautogui.hotkey('win', '`')
 		quit()
 
@@ -83,25 +107,21 @@ class KeyLauncher(App):
 		vlist = self.query_one(ListView)
 		command = plugin['search'].replace("{query}", query)
 		log(command)
-		#output = subprocess.run([command], capture_output=True).stdout.decode('utf-8')
+		#output = subprocess.run([command], capture_o``utput=True).stdout.decode('utf-8')
 		#output = async with os.popen(command).read()
 		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 		output, stderr = await process.communicate()
 
 		log(output)
 		self.current_object = json.loads(output)
-		for key in self.current_object:
+		for index, key in enumerate(self.current_object.keys()):
 			log(key)
-			vlist.append(ListItem(Label(key)))
-		
+			vlist.append(ListItem(Label(str(index) + ": " + key)))
 
 	def action_toggle_dark(self) -> None:
 		"""An action to toggle dark mode."""
 		self.dark = not self.dark
 
 if __name__ == "__main__":
-	#settings = json.load(open('settings.json'))
-	#plugins = settings['plugins']
-	#log(plugins)
 	app = KeyLauncher()
 	app.run()

@@ -1,6 +1,10 @@
-import os
+import pyautogui
+import keyboard
 
-#py plugin-apps.py --search fir
-command = "py plugin_apps.py --search fir"
-output = os.popen(command).read()
-print(output)
+while True:
+	keyboard.wait("F14")
+	print("You pressed p")
+
+	pyautogui.hotkey('win', '`')
+	pyautogui.typewrite("py .\keylaunch.py", 0)
+	pyautogui.press('enter')
