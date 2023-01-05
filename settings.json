@@ -4,8 +4,9 @@
 	[
 		{
 			"name": "applauncher",
-			"icon": "📱",
+			"icon": "1F4F1",
 			"keyword": "a",
+			"realtime": true,
 			"search": "py plugin_apps.py --search {query}",
 			"type": "listing",
 			"listitem": "({index}) {name}",
@@ -13,12 +14,23 @@
 		},
 		{
 			"name": "web search",
-			"icon": "🌎",
+			"icon": "1F310",
 			"keyword": "s",
+			"realtime": true,
 			"search": "py plugin_websearch.py --sites",
 			"type": "listing",
 			"listitem": "({index}) {name}",
 			"run": "py plugin_websearch.py --run \"{query}\" --index {index}"
+		},
+		{
+			"name": "GPT3 query",
+			"icon": "🧠",
+			"keyword": "g",
+			"realtime": false,
+			"search": "py plugin_ai.py --query {query}",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "Set-Clipboard -Value {action}"
 		}
 	]
 }

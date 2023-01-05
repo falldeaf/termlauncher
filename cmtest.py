@@ -6,5 +6,5 @@ while True:
 	print("You pressed p")
 
 	pyautogui.hotkey('win', '`')
-	pyautogui.typewrite("py .\keylaunch.py", 0)
+	pyautogui.typewrite("py keylaunch.py", 0)
 	pyautogui.press('enter')

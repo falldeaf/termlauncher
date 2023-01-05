@@ -1,10 +1,25 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Header, ListView, ListItem, Label, Footer, DataTable, Input
+from textual.widgets import Header, ListView, ListItem, Label, Footer, DataTable, Input, Static
 from textual import log, events
 import asyncio
 import subprocess
 import json
 import pyautogui
+
+class mode(Static):
+
+	def on_mount(self) -> None:
+		self.reset()
+
+	def reset(self) -> None:
+		self.update('(l)auncher')
+
+	def on_click(self) -> None:
+		self.next_word()
+
+	def set_content(self, content) -> None:
+		"""Get a new hello and update the content area."""
+		self.update(f"{content}, [b](l)auncher[/b]")
 
 class KeyLauncher(App):
 	"""A Textual key launcher app."""
@@ -32,6 +47,7 @@ class KeyLauncher(App):
 	def compose(self) -> ComposeResult:
 		"""Create child widgets for the app."""
 		#yield Header()
+		yield mode()
 		yield Input(placeholder="Query")
 		#yield DataTable()
 		yield ListView()
@@ -48,9 +64,16 @@ class KeyLauncher(App):
 			self.query_one(ListView).focus()
 		elif event.key == "down":
 			self.query_one(ListView).focus()
+		elif event.key == "escape":
+			pyautogui.hotkey('win', '`')
+			self.app.exit()
 
 	async def on_input_changed(self, message: Input.Changed) -> None:
 		"""A coroutine to handle a text changed message."""
+		self.query_one(mode).reset()
+		#if self.current_plugin is not None and not self.current_plugin['realtime']:
+			#return
+
 		if message.value:
 			vlist = self.query_one(ListView)
 			vlist.clear()
@@ -65,7 +88,11 @@ class KeyLauncher(App):
 					break
 
 			if plugin_to_use is None:
+				self.current_plugin = None
 				return
+
+			unicode_value = "0001f604"
+			self.query_one(mode).set_content(f"{chr(int(plugin['icon'], 16))} {plugin['name']}")
 
 			self.current_plugin = plugin_to_use
 
@@ -87,6 +114,12 @@ class KeyLauncher(App):
 			#self.query_one("#results", Static).update()
 			self.query_one(ListView).clear()
 
+	def on_input_submitted(self, event: Input.Submitted) -> None:
+		#event.value
+		if not self.current_plugin['realtime']:
+			return
+
+
 	async def on_list_view_selected(self, message: ListView.Selected) -> None:
 		vlist = self.query_one(ListView)
 		log(vlist.index)
@@ -100,7 +133,7 @@ class KeyLauncher(App):
 		if self.task is not None:
 			self.task.cancel()
 		pyautogui.hotkey('win', '`')
-		quit()
+		self.app.exit()
 
 	async def get_console_output(self, query: str, plugin: dict) -> None:
 		log(query + " " + plugin['search'] + " " + plugin['keyword'])
