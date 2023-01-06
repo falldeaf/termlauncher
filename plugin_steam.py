@@ -1,3 +1,4 @@
+import ast
 import json
 import os
 import pickle
@@ -37,11 +38,17 @@ if args.search:
 	with open("steam.pickle", "rb") as f:
 		steam_dict = pickle.load(f)
 
-	sorted_json = dict(sorted(steam_dict.items(), key=lambda item: item[1], reverse=True))
-	sliced_json = {key: sorted_json[key] for key in list(sorted_json.keys())[:args.num]}
-	#results = process.extract(args.search, steam_dict.keys(), limit=10)
-	#print(results)
-	print(sliced_json)
+	#sorted_json = dict(sorted(steam_dict.items(), key=lambda item: item[1], reverse=True))
+	#sliced_json = {key: sorted_json[key] for key in list(sorted_json.keys())[:args.num]}
+	#print(sliced_json)
+
+	new_steam_dict = {}
+	results = process.extract(args.search, steam_dict.keys(), limit=args.num)
+	for result in results:
+		new_steam_dict[result[0]] = str(steam_dict[result[0]])
+	
+	print( json.dumps(new_steam_dict) )
+
 
 if args.run:
 	#https://developer.valvesoftware.com/wiki/Steam_browser_protocol
