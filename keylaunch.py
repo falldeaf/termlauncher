@@ -71,6 +71,7 @@ class KeyLauncher(App):
 	async def on_input_changed(self, message: Input.Changed) -> None:
 		"""A coroutine to handle a text changed message."""
 		self.query_one(mode).reset()
+		
 		#if self.current_plugin is not None and not self.current_plugin['realtime']:
 			#return
 
@@ -91,49 +92,31 @@ class KeyLauncher(App):
 				self.current_plugin = None
 				return
 
-			unicode_value = "0001f604"
-			self.query_one(mode).set_content(f"{chr(int(plugin['icon'], 16))} {plugin['name']}")
+			#Header update
+			realtime_text = "Realtime:Enter key selects first option" if plugin['realtime'] else "Deferred:Enter key submits input query"
+			self.query_one(mode).set_content(f"{chr(int(plugin['icon'], 16))} {plugin['name']} | {plugin['description']} [{realtime_text}]")
 
 			self.current_plugin = plugin_to_use
 
-			if len(parts) > 1:
+			if self.current_plugin and self.current_plugin['realtime'] and len(parts) > 1:
+				#if len(parts) > 1:
 				if self.task is not None:
 					self.task.cancel()
 				self.task = asyncio.create_task(self.get_console_output(parts[1], plugin_to_use))
-			#vlist.append(ListItem(Label("📱 Foo")))
-			#vlist.append(ListItem(Label("☄️ too")))
-			#table = self.query_one(DataTable)
-			#table.clear(columns=True)
-			#table.add_column("id")
-			#table.add_column("name")
-			#table.add_rows(iter([("1", "foo"), ("2", "too")]))
-			# Look up the word in the background
-			#asyncio.create_task(self.lookup_word(message.value))
+
 		else:
-			# Clear the results
-			#self.query_one("#results", Static).update()
 			self.query_one(ListView).clear()
 
-	def on_input_submitted(self, event: Input.Submitted) -> None:
+	async def on_input_submitted(self, event: Input.Submitted) -> None:
 		#event.value
-		if not self.current_plugin['realtime']:
-			return
-
+		if self.current_plugin and self.current_plugin['realtime']:
+			await self.activated()
+		elif self.current_plugin and not self.current_plugin['realtime']:
+			#await self.get_console_output(event.value, self.current_plugin)
+			log("non-realtime go: " + event.value)
 
 	async def on_list_view_selected(self, message: ListView.Selected) -> None:
-		vlist = self.query_one(ListView)
-		log(vlist.index)
-		log(list(self.current_object.items())[vlist.index][0])
-
-		command = self.current_plugin['run'].replace("{action}", "\"" + list(self.current_object.items())[vlist.index][0] + "\"").replace("{index}", str(vlist.index)).replace("{query}", self.query_one(Input).value.split(" ", 1)[1])
-
-		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-		output, stderr = await process.communicate()
-
-		if self.task is not None:
-			self.task.cancel()
-		pyautogui.hotkey('win', '`')
-		self.app.exit()
+		await self.activated()
 
 	async def get_console_output(self, query: str, plugin: dict) -> None:
 		log(query + " " + plugin['search'] + " " + plugin['keyword'])
@@ -150,6 +133,21 @@ class KeyLauncher(App):
 		for index, key in enumerate(self.current_object.keys()):
 			log(key)
 			vlist.append(ListItem(Label(str(index) + ": " + key)))
+
+	async def activated(self) -> None:
+		vlist = self.query_one(ListView)
+		log(vlist.index)
+		log(list(self.current_object.items())[vlist.index][0])
+
+		command = self.current_plugin['run'].replace("{action}", "\"" + list(self.current_object.items())[vlist.index][0] + "\"").replace("{index}", str(vlist.index)).replace("{query}", self.query_one(Input).value.split(" ", 1)[1])
+
+		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		output, stderr = await process.communicate()
+
+		if self.task is not None:
+			self.task.cancel()
+		pyautogui.hotkey('win', '`')
+		self.app.exit()
 
 	def action_toggle_dark(self) -> None:
 		"""An action to toggle dark mode."""

@@ -5,6 +5,7 @@
 		{
 			"name": "applauncher",
 			"icon": "1F4F1",
+			"description": "Launch applications!",
 			"keyword": "a",
 			"realtime": true,
 			"search": "py plugin_apps.py --search {query}",
@@ -15,6 +16,7 @@
 		{
 			"name": "web search",
 			"icon": "1F310",
+			"description": "Search different sites for a specific query!",
 			"keyword": "s",
 			"realtime": true,
 			"search": "py plugin_websearch.py --sites",
@@ -24,7 +26,8 @@
 		},
 		{
 			"name": "GPT3 query",
-			"icon": "🧠",
+			"icon": "1F9E0",
+			"description": "Ask GPT3 a question!",
 			"keyword": "g",
 			"realtime": false,
 			"search": "py plugin_ai.py --query {query}",
