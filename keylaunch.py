@@ -1,3 +1,4 @@
+import os
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView, ListItem, Label, Footer, DataTable, Input, Static
 from textual import log, events
@@ -37,7 +38,9 @@ class KeyLauncher(App):
 	def on_mount(self) -> None:
 		"""Called when the app is mounted."""
 		log("mounted")
-		f =open('settings.json', "r")
+		script_directory = os.path.dirname(os.path.realpath(__file__))
+
+		f =open(script_directory + '\settings.json', "r")
 		self.settings = json.load(f)
 		self.plugins = self.settings['plugins']
 		f.close()
