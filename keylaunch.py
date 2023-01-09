@@ -117,6 +117,9 @@ class KeyLauncher(App):
 		elif self.current_plugin and not self.current_plugin['realtime']:
 			#await self.get_console_output(event.value, self.current_plugin)
 			log("non-realtime go: " + event.value)
+			if self.task is not None:
+				self.task.cancel()
+			self.task = asyncio.create_task(self.get_console_output(event.value.split(" ", 1)[1], self.current_plugin))
 
 	async def on_list_view_selected(self, message: ListView.Selected) -> None:
 		await self.activated()
@@ -131,11 +134,11 @@ class KeyLauncher(App):
 		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 		output, stderr = await process.communicate()
 
-		log(output)
 		self.current_object = json.loads(output)
-		for index, key in enumerate(self.current_object.keys()):
-			log(key)
-			vlist.append(ListItem(Label(str(index) + ": " + key)))
+		log(self.current_object)
+
+		for i, item in enumerate(self.current_object):
+			vlist.append( ListItem(Label( f"{str(i)} : {item['name']} - {item['description']} ({item['confidence']})" )))
 
 	async def activated(self) -> None:
 		vlist = self.query_one(ListView)

@@ -14,20 +14,36 @@ parser.add_argument('--tokens', help='How many tokens, max?', default=256, type=
 args = parser.parse_args()
 
 prompt_precursor = """In responding to the following question, please respond in valid JSON only.
-						It should be a list of key/value pairs where the key is the type of action 
-						to take and the value is your response. 
+						It should be an array of objects. Each object should have . 
 						
 						Here is an example for the question \"In Python, how can I add text to the clipboard?\":
 						
-						{"copy": "You could use the pyperclip module to copy text to the clipboard.",
-						 "open": "Open the documentation for [Pyperclip](https://pyperclip.readthedocs.io/en/latest/)", 
-						 "copy": "Copy the following code to the clipboard: pyperclip.copy(\"Hello World!\")",
-						 "run": "Run the following code: pyperclip.copy(\"Hello World!\")",
-						}"""
+						[
+							{
+								"name": "Open Pyperclip Documentation",
+								"action": "open:https://pyperclip.readthedocs.io/en/latest/",
+								"confidence": 90,
+								"description": "You could use the 'pyperclip' module to copy text to the clipboard."
+							},
+							{
+								"name": "Copy Code to Clipboard",
+								"action": "copy:pyperclip.copy(\"Hello World!\")",
+								"confidence": 80,
+								"description": "Copy the following code to the clipboard: pyperclip.copy(\"Hello World!\")"
+							}
+							{
+								"name": "Run Code",
+								"action": "run:pyperclip.copy(\"Hello World!\")",
+								"confidence": 70,
+								"description": "Run the following code: pyperclip.copy(\"Hello World!\")"
+							}
+						]
+						
+						Question:"""
 
 if args.prompt:
 		openai.api_key = os.getenv("OPENAI_KEY")
-		response = openai.Completion.create(model="text-davinci-003", prompt=prompt_precursor + args.prompt, temperature=args.temp, max_tokens=args.tokens)
+		response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
 		print(response["choices"][0]['text'])
 
 if args.run:

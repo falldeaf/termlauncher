@@ -38,17 +38,16 @@ if args.search:
 	with open("steam.pickle", "rb") as f:
 		steam_dict = pickle.load(f)
 
-	#sorted_json = dict(sorted(steam_dict.items(), key=lambda item: item[1], reverse=True))
-	#sliced_json = {key: sorted_json[key] for key in list(sorted_json.keys())[:args.num]}
-	#print(sliced_json)
-
-	new_steam_dict = {}
+	new_steam_obj = []
 	results = process.extract(args.search, steam_dict.keys(), limit=args.num)
 	for result in results:
-		new_steam_dict[result[0]] = str(steam_dict[result[0]])
-	
-	print( json.dumps(new_steam_dict) )
-
+		obj = {}
+		obj['name'] = result[0]
+		obj['action'] = result[0]
+		obj['confidence'] = result[1]
+		obj['description'] = ""
+		new_steam_obj.append(obj)
+	print( json.dumps(new_steam_obj) )
 
 if args.run:
 	#https://developer.valvesoftware.com/wiki/Steam_browser_protocol

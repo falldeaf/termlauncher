@@ -30,7 +30,7 @@
 			"description": "Ask GPT3 a question!",
 			"keyword": "g",
 			"realtime": false,
-			"search": "py plugin_ai.py --query {query}",
+			"search": "py plugin_ai.py --prompt \"{query}\"",
 			"type": "listing",
 			"listitem": "({index}) {name}",
 			"run": "Set-Clipboard -Value {action}"
