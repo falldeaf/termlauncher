@@ -33,7 +33,7 @@
 			"search": "py plugin_ai.py --prompt \"{query}\"",
 			"type": "listing",
 			"listitem": "({index}) {name}",
-			"run": "Set-Clipboard -Value {action}"
+			"run": "py plugin_ai.py --run {action}"
 		},
 		{
 			"name": "Steam Library",

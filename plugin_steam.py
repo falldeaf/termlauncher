@@ -39,11 +39,13 @@ if args.search:
 		steam_dict = pickle.load(f)
 
 	new_steam_obj = []
+	#print(steam_dict)
+
 	results = process.extract(args.search, steam_dict.keys(), limit=args.num)
 	for result in results:
 		obj = {}
 		obj['name'] = result[0]
-		obj['action'] = result[0]
+		obj['action'] = steam_dict[result[0]]
 		obj['confidence'] = result[1]
 		obj['description'] = ""
 		new_steam_obj.append(obj)
