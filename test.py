@@ -1,7 +1,19 @@
-import json
 
-json_test = "[  {   \"name\": \"Copy Regex to Clipboard\",   \"action\": \"copy:\",   \"confidence\": 95,   \"description\": \"Copy the regular expression to the clipboard:\"  },  {   \"name\": \"Open Regex Documentation\",   \"action\": \"open:https://www.regular-expressions.info/email.html\",   \"confidence\": 80,   \"description\": \"Open the regex documentation at: https://www.regular-expressions.info/email.html\"  } ]"
 
-print(json_test)
+import asyncio
 
-print(json.loads(json_test))
+async def get_console_output(command: str) -> None:
+	try:
+		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		output, stderr = await process.communicate()
+		print(output)
+		print(stderr)
+	except asyncio.exceptions.CancelledError as e:
+		print("cancelled: " + str(e))
+		print(stderr)
+		return
+
+async def main():
+	await get_console_output("dir")
+
+asyncio.run(main())

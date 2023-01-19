@@ -60,6 +60,8 @@ class KeyLauncher(App):
 
 		f =open(script_directory + '\settings.json', "r")
 		self.settings = json.load(f)
+		self.dark = self.settings['darktheme']
+
 		self.plugins = self.settings['plugins']
 		f.close()
 		log(self.plugins)
@@ -86,16 +88,16 @@ class KeyLauncher(App):
 			self.query_one(ListView).focus()
 		elif event.key == "down":
 			self.query_one(ListView).focus()
+		elif event.key == "ctrl+1":
+			self.query_one(ListView).index = 1
+			self.app.exit()
 		elif event.key == "escape":
-			pyautogui.hotkey('win', '`')
+			if(self.settings['terminal'] == "windowsterminal"): pyautogui.hotkey('win', '`')
 			self.app.exit()
 
 	async def on_input_changed(self, message: Input.Changed) -> None:
 		"""A coroutine to handle a text changed message."""
 		self.query_one(IndeterminateProgress).visible = False
-		
-		#if self.current_plugin is not None and not self.current_plugin['realtime']:
-			#return
 
 		if message.value:
 			vlist = self.query_one(ListView)
@@ -105,7 +107,7 @@ class KeyLauncher(App):
 
 			plugin_to_use = None
 			for plugin in self.plugins:
-				if parts[0] in plugin['keyword']:
+				if parts[0] == plugin['keyword']:
 					log("found plugin")
 					plugin_to_use = plugin
 					break
@@ -150,16 +152,21 @@ class KeyLauncher(App):
 		await self.activated()
 
 	async def get_console_output(self, query: str, plugin: dict) -> None:
-		log(query + " " + plugin['search'] + " " + plugin['keyword'])
 		vlist = self.query_one(ListView)
 		command = plugin['search'].replace("{query}", query)
-		log(command)
+		log("command: " + command)
 		#output = subprocess.run([command], capture_o``utput=True).stdout.decode('utf-8')
 		#output = async with os.popen(command).read()
-		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-		output, stderr = await process.communicate()
+		try:
+			process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+			output, stderr = await process.communicate()
+			log("commoutput: " + output)
+		except Exception as e:
+			log("An error occurred: " + str(e))
+		#process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		#output, stderr = await process.communicate()
 
-		log(output)
+		#log("commoutput: " + output)
 
 		try:
 			self.current_object = json.loads(output)

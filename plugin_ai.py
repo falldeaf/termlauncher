@@ -60,13 +60,13 @@ prompt_precursor = """In responding to the following question, please respond in
 							{
 								"name": "Copy command to clipboard",
 								"action": "copy:find [directory] -name '*.jpg' -size +10M",
-								"confidence": 80,
+								"confidence": 90,
 								"description": "Copy the folder path to the clipboard: find [directory] -name '*.jpg' -size +10M"
 							},
 							{
 								"name": "Search for Jpegs",
 								"action": "run:find [directory] -name '*.jpg' -size +10M",
-								"confidence": 90,
+								"confidence": 80,
 								"description": "Search the specified directory for Jpegs larger than 10 megs with the command: find [directory] -name '*.jpg' -size +10M"
 							}
 						]
@@ -77,7 +77,9 @@ if args.prompt:
 		openai.api_key = os.getenv("OPENAI_KEY")
 		clean_prompt = args.prompt.replace("\n", " ").replace("\r", " ").replace("\t", " ")
 		response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
-		print( json.dumps( response["choices"][0]['text'].replace("\r", " ").replace("\t", " ").replace("\n", " ") ))
+		#print( response["choices"][0]['text'].replace("\r", " ").replace("\t", " ").replace("\n", " ") )
+
+		print( json.dumps( json.loads(response["choices"][0]['text']) ) )
 
 if args.run:
 	action = args.run.split(":", 1)

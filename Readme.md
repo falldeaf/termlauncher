@@ -1,4 +1,4 @@
-# pytextual launch
+# termlaunch
 This is an early version of a command-line based key launcher using Textual. Haven't come up with a name, yet.
 
 ![screen-gif](./keylaunch-test.gif)

@@ -1,5 +1,6 @@
 {
-	"theme": "dark",
+	"terminal": "windowsterminal",
+	"darktheme": true,
 	"plugins": 
 	[
 		{
@@ -8,16 +9,16 @@
 			"description": "Launch applications!",
 			"keyword": "a",
 			"realtime": true,
-			"search": "py plugin_apps.py --search {query}",
+			"search": "py plugin_apps.py --search \"{query}\"",
 			"type": "listing",
 			"listitem": "({index}) {name}",
-			"run": "py plugin_apps.py --run {action}"
+			"run": "py plugin_apps.py --run \"{action}\""
 		},
 		{
 			"name": "web search",
 			"icon": "1F310",
 			"description": "Search different sites for a specific query!",
-			"keyword": "s",
+			"keyword": "ws",
 			"realtime": true,
 			"search": "py plugin_websearch.py --sites",
 			"type": "listing",
