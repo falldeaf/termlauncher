@@ -5,7 +5,7 @@ mode {
 }
 
 IndeterminateProgress {
-	content-align: center middle;
+	align: center middle;
 }
 
 Input {
@@ -14,4 +14,10 @@ Input {
 
 ListItem {
 	border: solid rgb(0, 225, 255);
+}
+
+DataTable {
+	border: solid rgb(0, 225, 255);
+	height: 70%;
+	width: 100%;
 }

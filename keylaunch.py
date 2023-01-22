@@ -10,11 +10,13 @@ import pyautogui
 
 class mode(Static):
 
+	title = "TermLauncher"
+
 	def on_mount(self) -> None:
 		self.reset()
 
 	def reset(self) -> None:
-		self.update('(l)auncher')
+		self.update('TermLauncher')
 
 	def on_click(self) -> None:
 		self.next_word()
@@ -64,7 +66,12 @@ class KeyLauncher(App):
 
 		self.plugins = self.settings['plugins']
 		f.close()
-		log(self.plugins)
+		#log(self.plugins)
+		self.query_one(DataTable).add_columns("keyword", "Plugin", "Description")
+		for plugin in self.plugins:
+			self.query_one(DataTable).add_row(plugin['keyword'], plugin['name'], plugin['description'])
+			
+
 		self.query_one(Input).focus()
 
 	def compose(self) -> ComposeResult:
@@ -73,7 +80,7 @@ class KeyLauncher(App):
 		yield mode()
 		yield Input(placeholder="Query")
 		yield IndeterminateProgress()
-		#yield DataTable()
+		yield DataTable()
 		yield ListView()
 		yield Footer()
 
@@ -100,6 +107,7 @@ class KeyLauncher(App):
 		self.query_one(IndeterminateProgress).visible = False
 
 		if message.value:
+			self.query_one(DataTable).display = False
 			vlist = self.query_one(ListView)
 			vlist.clear()
 
@@ -131,6 +139,7 @@ class KeyLauncher(App):
 				self.query_one(IndeterminateProgress).visible = True
 
 		else:
+			self.query_one(DataTable).display = True
 			self.query_one(ListView).clear()
 			self.query_one(IndeterminateProgress).visible = False
 			self.query_one(mode).reset()
