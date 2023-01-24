@@ -1,5 +1,6 @@
 import os
 import json
+import keyring
 import pyperclip
 import argparse
 import openai
@@ -10,6 +11,7 @@ load_dotenv()
 parser = argparse.ArgumentParser()
 parser.add_argument('--prompt', help='search sites for')
 parser.add_argument('--run', help='run an application')
+parser.add_argument('--apikey', help='Set api key (only needed once)')
 parser.add_argument('--temp', help='How deterministic?', default=1, type=int)
 parser.add_argument('--tokens', help='How many tokens, max?', default=256, type=int)
 args = parser.parse_args()
@@ -73,13 +75,21 @@ prompt_precursor = """In responding to the following question, please respond in
 						
 						Question:"""
 
-if args.prompt:
-		openai.api_key = os.getenv("OPENAI_KEY")
-		clean_prompt = args.prompt.replace("\n", " ").replace("\r", " ").replace("\t", " ")
-		response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
-		#print( response["choices"][0]['text'].replace("\r", " ").replace("\t", " ").replace("\n", " ") )
+if args.apikey:
+	keyring.set_password("system", "OPENAI_KEY", args.apikey)
 
-		print( json.dumps( json.loads(response["choices"][0]['text']) ) )
+if args.prompt:
+	if keyring.set_password("system", "OPENAI_KEY") == None:
+		print("Need to set openai key (python plugin_ai.py --openaikey <key>)")
+		exit(1)
+
+	openai.api_key = keyring.set_password("system", "OPENAI_KEY")
+
+	clean_prompt = args.prompt.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+	response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
+	#print( response["choices"][0]['text'].replace("\r", " ").replace("\t", " ").replace("\n", " ") )
+
+	print( json.dumps( json.loads(response["choices"][0]['text']) ) )
 
 if args.run:
 	action = args.run.split(":", 1)
