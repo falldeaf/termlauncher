@@ -164,32 +164,36 @@ class KeyLauncher(App):
 		vlist = self.query_one(ListView)
 		command = plugin['search'].replace("{query}", query)
 		log("command: " + command)
-		#output = subprocess.run([command], capture_o``utput=True).stdout.decode('utf-8')
-		#output = async with os.popen(command).read()
-		try:
-			process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-			output, stderr = await process.communicate()
-			log("commoutput: " + output)
-		except Exception as e:
-			log("An error occurred: " + str(e))
-		#process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-		#output, stderr = await process.communicate()
-
-		#log("commoutput: " + output)
+		process = await asyncio.create_subprocess_shell('powershell.exe -Command "' + command + '"', stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		output, stderr = await process.communicate()
+		
+		if(stderr):
+			log("command_error: " + str(stderr, 'utf-8'))
+		#else:
+			#log("command_output: " + str(output, 'utf-8'))
 
 		try:
-			self.current_object = json.loads(output)
+			self.current_object = json.loads(str(output, 'utf-8'))
+			log(self.current_object)
 		except json.decoder.JSONDecodeError as e:
-			print(f'Error decoding JSON: {e}')
+			log(f'Error decoding JSON: {e}')
 			self.query_one(IndeterminateProgress).visible = False
 			return
-		#self.current_object = json.loads(output)
-		#log(self.current_object)
 
 		self.query_one(IndeterminateProgress).visible = False
 
-		for i, item in enumerate(self.current_object):
-			vlist.append( ListItem(Label( f"{str(i)} : {item['name']} - {item['description']} ({item['confidence']})" )))
+		#for i, item in self.current_object.items():
+			#log(item)
+			#conf = item['confidence'] if 'confidence' in item else ""
+			#vlist.append( ListItem(Label( f"{str(i)} : {item['name']} - {item['description']} ({conf})" )))
+
+		for i in range(len(self.current_object)):
+			log(self.current_object[i])
+			log(self.current_object[i]['name'])
+			#obj = self.current_object[i]
+			#conf = obj['confidence'] if 'confidence' in obj else ""
+			#vlist.append( ListItem(Label( f"{str(i)} : {obj['name']} - {obj['description']} ({conf})" )))
+			#print("Object at index ", i, ": ", obj["name"], " is ", obj["age"], " years old.")
 
 	async def activated(self) -> None:
 		vlist = self.query_one(ListView)
