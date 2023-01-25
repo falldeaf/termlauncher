@@ -188,11 +188,17 @@ class KeyLauncher(App):
 			#vlist.append( ListItem(Label( f"{str(i)} : {item['name']} - {item['description']} ({conf})" )))
 
 		for i in range(len(self.current_object)):
-			log(self.current_object[i])
-			log(self.current_object[i]['name'])
-			#obj = self.current_object[i]
-			#conf = obj['confidence'] if 'confidence' in obj else ""
-			#vlist.append( ListItem(Label( f"{str(i)} : {obj['name']} - {obj['description']} ({conf})" )))
+			log(type(self.current_object[i]))
+			try: 
+				log(self.current_object[i]['name'])
+			except Exception as e:
+				# code that will be executed if any exception is raised
+				log("Error: ", e)
+				continue
+
+			obj = self.current_object[i]
+			conf = obj['confidence'] if 'confidence' in obj else ""
+			vlist.append( ListItem(Label( f"{str(i)} : {obj['name']} - {obj['description']} ({conf})" )))
 			#print("Object at index ", i, ": ", obj["name"], " is ", obj["age"], " years old.")
 
 	async def activated(self) -> None:
