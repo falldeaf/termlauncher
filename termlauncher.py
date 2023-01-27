@@ -164,7 +164,7 @@ class KeyLauncher(App):
 		vlist = self.query_one(ListView)
 		command = plugin['search'].replace("{query}", query)
 		log("command: " + command)
-		process = await asyncio.create_subprocess_shell('powershell.exe -Command "' + command + '"', stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 		output, stderr = await process.communicate()
 		
 		if(stderr):
@@ -215,6 +215,11 @@ class KeyLauncher(App):
 
 		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 		output, stderr = await process.communicate()
+
+		if(stderr):
+			log("command_error: " + str(stderr, 'utf-8'))
+		else:
+			log("command_output: " + str(output, 'utf-8'))
 
 		if self.task is not None:
 			self.task.cancel()

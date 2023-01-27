@@ -1,0 +1,18 @@
+{
+	"plugins": 
+	[
+		{
+			"name": "Steam Library",
+			"uid": "steamlibrary",
+			"icon": "1F3AE",
+			"description": "Search your Steam library!",
+			"keyword": "st",
+			"realtime": true,
+			"search": "py plugin_steam.py --search {query}",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "py plugin_steam.py --run {action}",
+			"setup": "pip install requirements.txt"
+		}
+	]
+}

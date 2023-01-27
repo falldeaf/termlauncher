@@ -1,6 +1,7 @@
 {
 	"terminal": "windowsterminal",
 	"darktheme": true,
+	"pluginfolder": "plugins/",
 	"plugins": 
 	[
 		{
@@ -31,8 +32,8 @@
 			"platform": "windows",
 			"description": "Search for files on your computer!",
 			"keyword": "f",
-			"realtime": false,
-			"search": "Get-ChildItem -Path c:\\project\\* -Include {query} -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10 @{Name='name';Expression={$_.Name}}, @{Name='action';Expression={'start explorer /select, \"' + $_.FullName + '\"'}}, @{Name='description';Expression={'Open the folder in explorer'}} | ConvertTo-Json -Compress",
+			"realtime": true,
+			"search": "powershell.exe -Command \"Get-ChildItem -Path c:\\project\\* -Include {query} -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10 @{Name='name';Expression={$_.Name}}, @{Name='action';Expression={'start explorer /select, \"' + $_.FullName + '\"'}}, @{Name='description';Expression={'Open the folder in explorer'}} | ConvertTo-Json -Compress\"",
 			"type": "listing",
 			"listitem": "({index}) {name}",
 			"run": "{action}"
