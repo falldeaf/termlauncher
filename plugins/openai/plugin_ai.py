@@ -1,16 +1,10 @@
-import os
 import json
 import keyring
-import pyperclip
 import argparse
 import openai
-import webbrowser
-from dotenv import load_dotenv
-load_dotenv()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--prompt', help='search sites for')
-parser.add_argument('--run', help='run an application')
 parser.add_argument('--apikey', help='Set api key (only needed once)')
 parser.add_argument('--temp', help='How deterministic?', default=1, type=int)
 parser.add_argument('--tokens', help='How many tokens, max?', default=256, type=int)
@@ -27,13 +21,13 @@ prompt_precursor = """In responding to the following question, please respond in
 						[
 							{
 								"name": "Open Pyperclip Documentation",
-								"action": "open:https://pyperclip.readthedocs.io/en/latest/",
+								"action": "Start-Process \"https://pyperclip.readthedocs.io/en/latest/\"",
 								"confidence": 90,
 								"description": "Open the 'pyperclip' documenation at: https://pyperclip.readthedocs.io/en/latest/"
 							},
 							{
 								"name": "Copy Code to Clipboard",
-								"action": "copy:pyperclip.copy(\"Hello World!\")",
+								"action": "Set-Clipboard -Value \"pyperclip.copy('Hello World!')\"",
 								"confidence": 80,
 								"description": "Copy the following code to the clipboard: pyperclip.copy(\"Hello World!\")"
 							}
@@ -44,13 +38,13 @@ prompt_precursor = """In responding to the following question, please respond in
 						[
 							{
 								"name": "Copy 'For What It's Worth'",
-								"action": "copy:For What It's Worth",
+								"action": "Set-Clipboard -Value \"For What It's Worth\"",
 								"confidence": 90,
 								"description": "Copy the definition text to the clipboard: For What It's Worth"
 							},
 							{
 								"name": "Search acronymfinder.com",
-								"action": "open:https://www.acronymfinder.com/FWIW.html",
+								"action": "Start-Process \"https://www.acronymfinder.com/FWIW.html\"",
 								"confidence": 70,
 								"description": "Open the acronymfinder.com page for FWIW at: https://www.acronymfinder.com/FWIW.html"
 							}
@@ -61,7 +55,7 @@ prompt_precursor = """In responding to the following question, please respond in
 						[
 							{
 								"name": "Copy command to clipboard",
-								"action": "copy:find [directory] -name '*.jpg' -size +10M",
+								"action": "Set-Clipboard -Value \"find [directory] -name '*.jpg' -size +10M\"",
 								"confidence": 90,
 								"description": "Copy the folder path to the clipboard: find [directory] -name '*.jpg' -size +10M"
 							},
@@ -79,23 +73,12 @@ if args.apikey:
 	keyring.set_password("system", "OPENAI_KEY", args.apikey)
 
 if args.prompt:
-	if keyring.set_password("system", "OPENAI_KEY") == None:
+	if keyring.get_password("system", "OPENAI_KEY") == None:
 		print("Need to set openai key (python plugin_ai.py --openaikey <key>)")
 		exit(1)
 
-	openai.api_key = keyring.set_password("system", "OPENAI_KEY")
+	openai.api_key = keyring.get_password("system", "OPENAI_KEY")
 
 	clean_prompt = args.prompt.replace("\n", " ").replace("\r", " ").replace("\t", " ")
 	response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
-	#print( response["choices"][0]['text'].replace("\r", " ").replace("\t", " ").replace("\n", " ") )
-
-	print( json.dumps( json.loads(response["choices"][0]['text']) ) )
-
-if args.run:
-	action = args.run.split(":", 1)
-	if action[0] == "open":
-		webbrowser.open(action[1])
-	elif action[0] == "copy":
-		pyperclip.copy(action[1])
-	elif action[0] == "run":
-		print(action[1])
+	print( response["choices"][0]['text'] )

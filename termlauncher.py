@@ -1,10 +1,12 @@
 import os
+import pathlib
+import platform
+from appdirs import *
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView, ListItem, Label, Footer, DataTable, Input, Static
 from textual import log, events
 from rich.progress import Progress, BarColumn
 import asyncio
-#import subprocess
 import json
 import pyautogui
 
@@ -42,12 +44,13 @@ class IndeterminateProgress(Static):
 
 class KeyLauncher(App):
 	"""A Textual key launcher app."""
-	CSS_PATH = "keylaunch.css"
+	CSS_PATH = "termlauncher.css"
 
 	plugins = []
 	current_object = {}
 	current_plugin = {}
 	task = None
+	folder = user_data_dir("termlauncher", '')
 
 	BINDINGS = [
 		("d", "toggle_dark", "Toggle dark mode"),
@@ -56,21 +59,24 @@ class KeyLauncher(App):
 
 	def on_mount(self) -> None:
 		"""Called when the app is mounted."""
+		#check if settings.json exists
+		self.addDefaultSettings(self.folder)
+
 		self.query_one(IndeterminateProgress).visible = False
 		log("mounted")
-		script_directory = os.path.dirname(os.path.realpath(__file__))
+		#script_directory = os.path.dirname(os.path.realpath(__file__))
 
-		f =open(script_directory + '\settings.json', "r")
+		#f =open(script_directory + '\settings.json', "r")
+		f =open(f"{self.folder}/settings.json", "r")
 		self.settings = json.load(f)
 		self.dark = self.settings['darktheme']
 
 		self.plugins = self.settings['plugins']
 		f.close()
 		#log(self.plugins)
-		self.query_one(DataTable).add_columns("keyword", "Plugin", "Description")
+		self.query_one(DataTable).add_columns("icon", "keyword", "Plugin", "Description")
 		for plugin in self.plugins:
-			self.query_one(DataTable).add_row(plugin['keyword'], plugin['name'], plugin['description'])
-			
+			self.query_one(DataTable).add_row(chr(int(plugin['icon'], 16)), plugin['keyword'], plugin['name'], plugin['description'])
 
 		self.query_one(Input).focus()
 
@@ -131,11 +137,9 @@ class KeyLauncher(App):
 			self.current_plugin = plugin_to_use
 
 			if self.current_plugin and self.current_plugin['realtime'] and len(parts) > 1:
-				#if len(parts) > 1:
 				if self.task is not None:
 					self.task.cancel()
 				self.task = asyncio.create_task(self.get_console_output(parts[1], plugin_to_use))
-				#self.query_one(mode).reset()
 				self.query_one(IndeterminateProgress).visible = True
 
 		else:
@@ -150,7 +154,6 @@ class KeyLauncher(App):
 		if self.current_plugin and self.current_plugin['realtime']:
 			await self.activated()
 		elif self.current_plugin and not self.current_plugin['realtime']:
-			#await self.get_console_output(event.value, self.current_plugin)
 			log("non-realtime go: " + event.value)
 			if self.task is not None:
 				self.task.cancel()
@@ -162,9 +165,14 @@ class KeyLauncher(App):
 
 	async def get_console_output(self, query: str, plugin: dict) -> None:
 		vlist = self.query_one(ListView)
+
+		working_dir = f"{self.folder}/plugins/{self.current_plugin['uid']}"
 		command = plugin['search'].replace("{query}", query)
+		#if windows, use powershell to run command
+		if platform.system() == 'Windows':
+			command = f"powershell -Command \"{command}\""
 		log("command: " + command)
-		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=working_dir)
 		output, stderr = await process.communicate()
 		
 		if(stderr):
@@ -210,10 +218,16 @@ class KeyLauncher(App):
 		action = self.current_object[vlist.index]['action']
 		query = self.query_one(Input).value.split(" ", 1)[1]
 
+		working_dir = f"{self.folder}/plugins/{self.current_plugin['uid']}"
 		command = self.current_plugin['run'].replace("{action}", str(action)).replace("{index}", index).replace("{query}", str(query))
+		#if windows, use powershell to run command
+		if platform.system() == 'Windows':
+			command = f"powershell -Command \"{command}\""
+
+		log(working_dir)
 		log(command)
 
-		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+		process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=working_dir)
 		output, stderr = await process.communicate()
 
 		if(stderr):
@@ -229,6 +243,15 @@ class KeyLauncher(App):
 	def action_toggle_dark(self) -> None:
 		"""An action to toggle dark mode."""
 		self.dark = not self.dark
+
+	def addDefaultSettings(self, folder: str):
+		# create default settings file
+		if not os.path.exists(f"{folder}/settings.json"):
+			
+			pathlib.Path(f"{folder}/plugins").mkdir(parents=True, exist_ok=True)
+
+			with open(f"{folder}/settings.json", "w") as f:
+				f.write('{"darktheme": true, "plugins": []}')
 
 if __name__ == "__main__":
 	app = KeyLauncher()

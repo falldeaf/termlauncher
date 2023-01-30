@@ -1,0 +1,19 @@
+{
+	"plugins": 
+	[
+		{
+			"name": "Audio devices",
+			"uid": "audiodevices",
+			"platform": "windows",
+			"icon": "1F3A7",
+			"description": "Set your default audio devices",
+			"keyword": "au",
+			"realtime": true,
+			"search": "Get-AudioDevice -List | Select-Object -First 10 @{Name='name';Expression={$_.Name}}, @{Name='action';Expression={'Set-AudioDevice -Index ' + $_.Index}}, @{Name='description';Expression={'Activate the device'}} | ConvertTo-Json -Compress",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "{action}",
+			"setup": "Install-Module -Name AudioDeviceCmdlets"
+		}
+	]
+}

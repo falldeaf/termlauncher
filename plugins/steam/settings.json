@@ -5,7 +5,7 @@
 			"name": "Steam Library",
 			"uid": "steamlibrary",
 			"icon": "1F3AE",
-			"description": "Search your Steam library!",
+			"description": "Search your Steam library",
 			"keyword": "st",
 			"realtime": true,
 			"search": "py plugin_steam.py --search {query}",

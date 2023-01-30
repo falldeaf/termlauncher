@@ -1,0 +1,16 @@
+{
+	"plugins": 
+	[
+		{
+			"name": "applauncher",
+			"icon": "1F4F1",
+			"description": "Launch applications!",
+			"keyword": "a",
+			"realtime": true,
+			"search": "py plugin_apps.py --search \"{query}\"",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "py plugin_apps.py --run \"{action}\""
+		}
+	]
+}

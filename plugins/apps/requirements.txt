@@ -1,0 +1,2 @@
+fuzzywuzzy==0.18.0
+windowsapps==0.0.9

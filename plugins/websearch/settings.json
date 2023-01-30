@@ -1,0 +1,16 @@
+{
+	"plugins": 
+	[
+		{
+			"name": "web search",
+			"icon": "1F310",
+			"description": "Search different sites for a specific query!",
+			"keyword": "ws",
+			"realtime": true,
+			"search": "py plugin_websearch.py --sites",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "py plugin_websearch.py --run \"{query}\" --index {index}"
+		}
+	]
+}
