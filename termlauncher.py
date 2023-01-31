@@ -1,6 +1,7 @@
 import os
 import pathlib
 import platform
+import webbrowser
 from appdirs import *
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView, ListItem, Label, Footer, DataTable, Input, Static
@@ -42,7 +43,7 @@ class IndeterminateProgress(Static):
 	def update_progress_bar(self) -> None:
 		self.update(self._bar)
 
-class KeyLauncher(App):
+class TermLauncher(App):
 	"""A Textual key launcher app."""
 	CSS_PATH = "termlauncher.css"
 
@@ -51,6 +52,7 @@ class KeyLauncher(App):
 	current_plugin = {}
 	task = None
 	folder = user_data_dir("termlauncher", '')
+	builtins_keywords = ["settings", "addplugin", "removeplugin"]
 
 	BINDINGS = [
 		("d", "toggle_dark", "Toggle dark mode"),
@@ -108,6 +110,59 @@ class KeyLauncher(App):
 			if(self.settings['terminal'] == "windowsterminal"): pyautogui.hotkey('win', '`')
 			self.app.exit()
 
+	async def builtins(self, keyword, query):
+		if keyword == "exit":
+			self.app.exit()
+		elif keyword == "clear":
+			self.query_one(ListView).clear()
+		elif keyword == "reload":
+			self.query_one(ListView).clear()
+			self.query_one(mode).reset()
+			self.query_one(Input).value = ""
+			self.query_one(Input).focus()
+			self.query_one(IndeterminateProgress).visible = False
+			self.query_one(DataTable).display = True
+			self.query_one(DataTable).focus()
+		elif keyword == "settings":
+			self.query_one(ListView).clear()
+			self.query_one(mode).set_content("Settings - Edit settings.json")
+			self.current_plugin = {
+				"run": "{action}"
+			}
+			self.current_object = [
+				{
+					"action": "explorer.exe " + self.folder,
+				},
+				{
+					"action": "notepad.exe " + self.folder + "/settings.json",
+				}
+			]
+			vlist = self.query_one(ListView)
+			vlist.append( ListItem(Label( f"(1) Open settings.json" )))
+			vlist.append( ListItem(Label( f"(2) Reveal settings.json in file explorer" )))
+
+		elif keyword == "addplugin":
+			self.query_one(ListView).clear()
+			self.query_one(mode).set_content("Add Plugin - Enter Gist ID")
+			self.current_plugin = {
+				"run": "{action}",
+				"realtime": True,
+			}
+			self.current_object = [
+				{
+					"runfunction": "addPlugin",
+				},
+				{
+					"runfunction": "openUrl",
+				}
+			]
+			vlist = self.query_one(ListView)
+			vlist.append( ListItem(Label( f"(1) Install the plugin" )))
+			vlist.append( ListItem(Label( f"(2) Open the plugin's Gist page" )))
+
+		elif keyword == "quit":
+			self.app.exit()
+
 	async def on_input_changed(self, message: Input.Changed) -> None:
 		"""A coroutine to handle a text changed message."""
 		self.query_one(IndeterminateProgress).visible = False
@@ -118,6 +173,14 @@ class KeyLauncher(App):
 			vlist.clear()
 
 			parts = message.value.split(" ", 1)
+
+			log(parts[0])
+			if parts[0] in self.builtins_keywords:
+				#if there's no query, add an empty string
+				if len(parts) == 1:
+					parts.append("")
+				await self.builtins(parts[0], parts[1])
+				return
 
 			plugin_to_use = None
 			for plugin in self.plugins:
@@ -215,10 +278,20 @@ class KeyLauncher(App):
 		log(self.current_object[vlist.index])
 
 		index = str(vlist.index)
-		action = self.current_object[vlist.index]['action']
-		query = self.query_one(Input).value.split(" ", 1)[1]
+		#query should be the rest of the input or empty string if input string split returns only one item
+		query = self.query_one(Input).value.split(" ", 1)
+		query = query[1] if len(query) > 1 else ""
 
-		working_dir = f"{self.folder}/plugins/{self.current_plugin['uid']}"
+		#If the plugin has a runfunction, run that instead of the default run
+		if "runfunction" in self.current_object[vlist.index]:
+			#self.addPlugin(query)
+			log("runfunction: " + self.current_object[vlist.index]['runfunction'])
+			locals()[self.current_plugin[vlist.index]['runfunction']](query)
+			return
+
+		action = self.current_object[vlist.index]['action']
+
+		working_dir = f"{self.folder}/plugins/{self.current_plugin['uid']}" if 'uid' in self.current_plugin else self.folder
 		command = self.current_plugin['run'].replace("{action}", str(action)).replace("{index}", index).replace("{query}", str(query))
 		#if windows, use powershell to run command
 		if platform.system() == 'Windows':
@@ -253,6 +326,63 @@ class KeyLauncher(App):
 			with open(f"{folder}/settings.json", "w") as f:
 				f.write('{"darktheme": true, "plugins": []}')
 
+	def openUrl(self, url: str):
+		webbrowser.open(url)
+
+	def addPlugin(self, gist_id: str):
+		log("ap test " + gist_id)
+		return
+
+		appname = "termlauncher"
+
+		print(user_data_dir(appname, ''))
+
+		import json
+		from urllib.request import urlopen,urlretrieve
+
+		#gist_id = "2da918563456b6dcde6592ec7d6d148d"
+		folder = user_data_dir(appname, '')
+
+		# Get metadata for Gist
+		url = f"https://api.github.com/gists/{gist_id}"
+		response = urlopen(url)
+		data = json.loads(response.read())
+
+		#create folder if not exists
+		pathlib.Path(f"{folder}/plugins/{gist_id}").mkdir(parents=True, exist_ok=True)
+
+		# Download files
+		for filename, props in data["files"].items():
+			url = props["raw_url"]
+			print(f"{folder}/plugins/{gist_id}/{filename}")
+			urlretrieve(url, f"{folder}/plugins/{gist_id}/{filename}")
+
+		# read the first .json file
+		with open(f"{folder}/plugins/{gist_id}/settings.json") as f1:
+			file1 = json.load(f1)
+
+		# get the first object from the 'plugins' array
+		first_obj = file1['plugins'][0]
+
+		# read the second .json file
+		with open(f"{folder}/settings.json") as f2:
+			file2 = json.load(f2)
+
+		# add the first object to the second file's 'plugins' array
+		# or overwrite if the object has the same 'uid' key
+		found = False
+		for plugin in file2['plugins']:
+			if plugin['uid'] == first_obj['uid']:
+				plugin.update(first_obj)
+				found = True
+				break
+		if not found:
+			file2['plugins'].append(first_obj)
+
+		# write the updated second .json file
+		with open(f"{folder}/settings.json", "w") as f2:
+			json.dump(file2, f2)
+
 if __name__ == "__main__":
-	app = KeyLauncher()
+	app = TermLauncher()
 	app.run()

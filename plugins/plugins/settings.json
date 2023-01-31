@@ -1,0 +1,16 @@
+{
+	"plugins": 
+	[
+		{
+			"name": "Plugin online repository",
+			"icon": "1F4F1",
+			"description": "Search for TermLauncher plugins online",
+			"keyword": "plugins",
+			"realtime": true,
+			"search": "py plugin_plugins.py --search \" {query}\"",
+			"type": "listing",
+			"listitem": "({index}) {name}",
+			"run": "py plugin_plugins.py --install {action}"
+		}
+	]
+}

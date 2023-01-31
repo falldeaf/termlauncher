@@ -1,0 +1,2 @@
+appdirs==1.4.4
+fuzzywuzzy==0.18.0
