@@ -67,7 +67,9 @@ class TermLauncher(App):
 		self.query_one(IndeterminateProgress).visible = False
 		log("mounted")
 		#script_directory = os.path.dirname(os.path.realpath(__file__))
+		self.loadSettings()
 
+	def loadSettings(self):
 		#f =open(script_directory + '\settings.json', "r")
 		f =open(f"{self.folder}/settings.json", "r")
 		self.settings = json.load(f)
@@ -310,8 +312,12 @@ class TermLauncher(App):
 
 		if self.task is not None:
 			self.task.cancel()
-		pyautogui.hotkey('win', '`')
-		self.app.exit()
+
+		if(self.settings.get("terminal") == "windowsterminal"):	
+			pyautogui.hotkey('win', '`')
+
+		if self.settings.get("exit_on_run"):
+			self.app.exit()
 
 	def action_toggle_dark(self) -> None:
 		"""An action to toggle dark mode."""
@@ -330,9 +336,6 @@ class TermLauncher(App):
 		webbrowser.open(url)
 
 	def addPlugin(self, gist_id: str):
-		log("ap test " + gist_id)
-		return
-
 		appname = "termlauncher"
 
 		print(user_data_dir(appname, ''))
@@ -382,6 +385,10 @@ class TermLauncher(App):
 		# write the updated second .json file
 		with open(f"{folder}/settings.json", "w") as f2:
 			json.dump(file2, f2)
+
+		# reload settings
+		self.loadSettings()
+
 
 if __name__ == "__main__":
 	app = TermLauncher()
