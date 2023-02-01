@@ -43,9 +43,34 @@ class IndeterminateProgress(Static):
 	def update_progress_bar(self) -> None:
 		self.update(self._bar)
 
-class TermLauncher(App):
+class termlauncher(App):
 	"""A Textual key launcher app."""
-	CSS_PATH = "termlauncher.css"
+	#CSS_PATH = "termlauncher.css"
+	CSS = '''
+		mode {
+			dock: top;
+			padding:0 4 1 2;
+			text-style: bold;
+		}
+
+		IndeterminateProgress {
+			align: center middle;
+		}
+
+		Input {
+			padding: 0 4;
+		}
+
+		ListItem {
+			border: solid rgb(0, 225, 255);
+		}
+
+		DataTable {
+			border: solid rgb(0, 225, 255);
+			height: 70%;
+			width: 100%;
+		}
+	'''
 
 	plugins = []
 	current_object = {}
@@ -391,5 +416,5 @@ class TermLauncher(App):
 
 
 if __name__ == "__main__":
-	app = TermLauncher()
+	app = termlauncher()
 	app.run()
