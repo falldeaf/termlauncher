@@ -1,0 +1,7 @@
+//Update version in pyproject.toml!
+
+//Build
+py -m build
+
+//Upload to Pypi
+py -m twine upload dist/*
