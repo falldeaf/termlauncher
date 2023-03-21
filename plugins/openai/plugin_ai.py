@@ -11,13 +11,12 @@ parser.add_argument('--tokens', help='How many tokens, max?', default=256, type=
 args = parser.parse_args()
 
 prompt_precursor = """In responding to the following question, please respond in valid JSON only, with no white-space, or newline characters.
-						It should be an array of objects. Valid action types are: (open, copy, run)
-						Open should be in the format of 'open:https://www.google.com' and contain a valid URL.
-						Copy should be in the format of 'copy:Hello World!' and contain a string.
-						Run should be in the format of 'run:print("Hello World!")' and should contain a valid command line command.
-						
-						Here is an example for the question \"In Python, how can I add text to the clipboard?\":
-						
+						It should be an array of objects that correspond to different possible actions to take based on the question.
+						Each object should have a name, action, confidence, and description.
+						Actions can be any valid command or powershell functions.
+
+						Here is an example for the question \"In Python, how can I add text to the clipboard?\" (except it should all be on one line):
+
 						[
 							{
 								"name": "Open Pyperclip Documentation",
@@ -33,40 +32,6 @@ prompt_precursor = """In responding to the following question, please respond in
 							}
 						]
 
-						Another example question might be: \"What does FWIW stand for?\":
-
-						[
-							{
-								"name": "Copy 'For What It's Worth'",
-								"action": "Set-Clipboard -Value \"For What It's Worth\"",
-								"confidence": 90,
-								"description": "Copy the definition text to the clipboard: For What It's Worth"
-							},
-							{
-								"name": "Search acronymfinder.com",
-								"action": "Start-Process \"https://www.acronymfinder.com/FWIW.html\"",
-								"confidence": 70,
-								"description": "Open the acronymfinder.com page for FWIW at: https://www.acronymfinder.com/FWIW.html"
-							}
-						]
-
-						Another example question might be: \"How can I search for jpegs larger than 10 MB in a certain directory?\":
-
-						[
-							{
-								"name": "Copy command to clipboard",
-								"action": "Set-Clipboard -Value \"find [directory] -name '*.jpg' -size +10M\"",
-								"confidence": 90,
-								"description": "Copy the folder path to the clipboard: find [directory] -name '*.jpg' -size +10M"
-							},
-							{
-								"name": "Search for Jpegs",
-								"action": "run:find [directory] -name '*.jpg' -size +10M",
-								"confidence": 80,
-								"description": "Search the specified directory for Jpegs larger than 10 megs with the command: find [directory] -name '*.jpg' -size +10M"
-							}
-						]
-						
 						Question:"""
 
 if args.apikey:
@@ -80,5 +45,13 @@ if args.prompt:
 	openai.api_key = keyring.get_password("system", "OPENAI_KEY")
 
 	clean_prompt = args.prompt.replace("\n", " ").replace("\r", " ").replace("\t", " ")
-	response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
-	print( response["choices"][0]['text'] )
+	#response = openai.Completion.create(model="text-davinci-003", prompt=f"{prompt_precursor} {args.prompt}", temperature=args.temp, max_tokens=args.tokens)
+	response = openai.ChatCompletion.create(
+		model="gpt-3.5-turbo",
+		messages=[
+				{"role": "system", "content": "You are a helpful assistant."},
+				{"role": "user", "content": f"{prompt_precursor} {args.prompt}"},
+			]
+	)
+	print( response["choices"][0]["message"]["content"] )
+	#print( response["choices"][0]['text'] )
